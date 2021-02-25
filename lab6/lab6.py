@@ -48,6 +48,70 @@ def Lagrange(x, arr_x, arr_y, n):
     return  lagrange_pol
 
 
+class SplineTuple:
+    def __init__(self, a, b, c, d, x):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.x = x
+
+def BuildSpline(x, y, n):
+    splines = [SplineTuple(0, 0, 0, 0, 0) for _ in range(n)]
+    for i in range(n):
+        splines[i].x = x[i]
+        splines[i].a = y[i]
+
+    splines[0].c = splines[n - 1].c = 0.0
+
+    alpha = [0.0 for _ in range(n - 1)]
+    beta = [0.0 for _ in range(n - 1)]
+
+    for i in range(1, n - 1):
+        hi = x[i] - x[i - 1]
+        hi1 = x[i + 1] - x[i]
+        A = hi
+        C = 2.0 * (hi + hi1)
+        B = hi1
+        F = 6.0 * ((y[i + 1] - y[i]) / hi1 - (y[i] - y[i - 1]) / hi)
+        z = (A * alpha[i - 1] + C)
+        alpha[i] = -B / z
+        beta[i] = (F - A * beta[i - 1]) / z
+
+    for i in range(n - 2, 0, -1):
+        splines[i].c = alpha[i] * splines[i + 1].c + beta[i]
+
+    for i in range(n - 1, 0, -1):
+        hi = x[i] - x[i - 1]
+        splines[i].d = (splines[i].c - splines[i - 1].c) / hi
+        splines[i].b = hi * (2.0 * splines[i].c + splines[i - 1].c) / 6.0 + (y[i] - y[i - 1]) / hi
+    return splines
+
+def Interpolate(splines, x):
+    if not splines:
+        return None
+
+    n = len(splines)
+    s = SplineTuple(0, 0, 0, 0, 0)
+
+    if x <= splines[0].x:
+        s = splines[0]
+    elif x >= splines[n - 1].x:
+        s = splines[n - 1]
+    else:
+        i = 0
+        j = n - 1
+        while i + 1 < j:
+            k = i + (j - i) // 2
+            if x <= splines[k].x:
+                j = k
+            else:
+                i = k
+        s = splines[j]
+
+    dx = x - s.x
+
+    return s.a + (s.b + (s.c / 2.0 + s.d * dx / 6.0) * dx) * dx;
 
 
 
@@ -61,16 +125,23 @@ for i in range(n):
     arr_y[i] = func(arr_x[i])
 
 x = float(input("Введіть х, в якому треба знайти значення функції: "))
+
 f = round(func(x), 6)
-lagr = round(Lagrange(x, arr_x, arr_y, n), 6)
-newt_f = round(NewtonForward(x, n, arr_x, arr_y), 6)
-newt_b = round(NewtonBack(x, n, arr_x, arr_y), 6)
 print(f"f(x) = {f}")
+
+lagr = round(Lagrange(x, arr_x, arr_y, n), 6)
 print(f"Інтерполяція Лагранжа в точці {x} рівна F = {lagr}")
 print(f"Помилка інтерполяції: {abs(f - lagr)}")
+
+newt_f = round(NewtonForward(x, n, arr_x, arr_y), 6)
 print(f"Інтерполяція Ньютона вперед в точці {x} рівна F = {newt_f}")
 print(f"Помилка інтерполяції: {abs(f - newt_f)}")
+
+newt_b = round(NewtonBack(x, n, arr_x, arr_y), 6)
 print(f"Інтерполяція Ньютона назад в точці {x} рівна F = {newt_b}")
 print(f"Помилка інтерполяції: {abs(f - newt_b)}")
 
-
+spline = BuildSpline(arr_x, arr_y, n)
+s = round(Interpolate(spline, x), 6)
+print(f"Сплаймами в точці {x} рівна F = {s}")
+print(f"Помилка інтерполяції: {abs(f - s)}")
