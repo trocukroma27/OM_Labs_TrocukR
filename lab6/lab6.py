@@ -1,4 +1,5 @@
 import math
+import matplotlib.pyplot as plt
 
 def func(x):
     return (4-x)*math.exp(x-3)
@@ -131,17 +132,103 @@ print(f"f(x) = {f}")
 
 lagr = round(Lagrange(x, arr_x, arr_y, n), 6)
 print(f"Інтерполяція Лагранжа в точці {x} рівна F = {lagr}")
-print(f"Помилка інтерполяції: {abs(f - lagr)}")
+print(f"Помилка інтерполяції: {round(abs(f - lagr), 6)}")
 
 newt_f = round(NewtonForward(x, n, arr_x, arr_y), 6)
 print(f"Інтерполяція Ньютона вперед в точці {x} рівна F = {newt_f}")
-print(f"Помилка інтерполяції: {abs(f - newt_f)}")
+print(f"Помилка інтерполяції: {round(abs(f - newt_f), 6)}")
 
 newt_b = round(NewtonBack(x, n, arr_x, arr_y), 6)
 print(f"Інтерполяція Ньютона назад в точці {x} рівна F = {newt_b}")
-print(f"Помилка інтерполяції: {abs(f - newt_b)}")
+print(f"Помилка інтерполяції: {round(abs(f - newt_b), 6)}")
 
 spline = BuildSpline(arr_x, arr_y, n)
 s = round(Interpolate(spline, x), 6)
 print(f"Сплаймами в точці {x} рівна F = {s}")
-print(f"Помилка інтерполяції: {abs(f - s)}")
+print(f"Помилка інтерполяції: {round(abs(f - s), 6)}")
+
+
+xi = arr_x[0]
+dx = (arr_x[1] - arr_x[0]) / 5
+X = []
+F = []
+INTER = []
+DELTA_LAGR = []
+
+while xi <= arr_x[n - 1]:
+    X.append(xi)
+    f = func(xi)
+    F. append(f)
+    lagr = Lagrange(xi, arr_x, arr_y, n)
+    INTER.append(lagr)
+    DELTA_LAGR.append(abs(f - lagr))
+    xi += dx
+plt.plot(X, F, label = "Функція", linestyle='--')
+plt.plot(X, INTER, label = "Інтерполяція Лагранжа", linestyle='-.')
+plt.plot(X, DELTA_LAGR, label = "Помилка")
+plt.legend()
+plt.title("Лагранж")
+plt.show()
+
+
+
+xi = arr_x[0]
+INTER = []
+DELTA_NF = []
+i=0
+while xi <= arr_x[n - 1]:
+    newt_f = NewtonForward(xi, n, arr_x, arr_y)
+    INTER.append(newt_f)
+    DELTA_NF.append(abs(F[i] - newt_f))
+    xi += dx
+    i += 1
+plt.plot(X, F, label = "Функція", linestyle='--')
+plt.plot(X, INTER, label = "Інтерполяція Ньютона вперед", linestyle='-.')
+plt.plot(X, DELTA_NF, label = "Помилка")
+plt.legend()
+plt.title("Ньютон вперед")
+plt.show()
+
+
+xi = arr_x[0]
+INTER = []
+DELTA_NB = []
+i=0
+while xi <= arr_x[n - 1]:
+    newt_b = NewtonBack(xi, n, arr_x, arr_y)
+    INTER.append(newt_b)
+    DELTA_NB.append(abs(F[i] - newt_b))
+    xi += dx
+    i += 1
+plt.plot(X, F, label = "Функція", linestyle='--')
+plt.plot(X, INTER, label = "Інтерполяція Ньютона назад", linestyle='-.')
+plt.plot(X, DELTA_NB, label = "Помилка")
+plt.legend()
+plt.title("Ньютон назад")
+plt.show()
+
+
+xi = arr_x[0]
+INTER = []
+DELTA_SPL = []
+i=0
+spline = BuildSpline(arr_x, arr_y, n)
+while xi <= arr_x[n - 1]:
+    s = Interpolate(spline, xi)
+    INTER.append(s)
+    DELTA_SPL.append(abs(F[i] - s))
+    xi += dx
+    i += 1
+plt.plot(X, F, label = "Функція", linestyle='--')
+plt.plot(X, INTER, label = "Сплайн", linestyle='-.')
+plt.plot(X, DELTA_SPL, label = "Помилка")
+plt.legend()
+plt.title("Сплайн третього порядку")
+plt.show()
+
+plt.plot(X, DELTA_LAGR, label = "Помилка інтерполації Лагранжа", linestyle='--')
+plt.plot(X, DELTA_NF, label = "Помилка інтерполації Ньютона вперед", linestyle='-.')
+plt.plot(X, DELTA_NB, label = "Помилка інтерполації Ньтона назад", linestyle=':')
+plt.plot(X, DELTA_SPL, label = "Помилка сплайну")
+plt.legend()
+plt.show()
